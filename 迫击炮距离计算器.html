@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密位计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>密位计算器</h1>
+        <form id="calculatorForm">
+            <div class="form-group">
+                <label for="x">X (长度数据):</label>
+                <input type="number" id="x" name="x" required>
+            </div>
+            <div class="form-group">
+                <label for="y">Y (长度数据):</label>
+                <input type="number" id="y" name="y" required>
+            </div>
+            <div class="form-group">
+                <label for="beta">角度 β (度):</label>
+                <input type="number" id="beta" name="beta" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="radio" id="useL" name="inputType" value="L">
+                    直接使用长度 L
+                </label>
+            </div>
+            <div class="form-group" id="lInputGroup" style="display: none;">
+                <label for="l">长度 L:</label>
+                <input type="number" id="l" name="l">
+            </div>
+            <button type="button" onclick="calculate()">计算</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function calculate() {
+            const x = parseFloat(document.getElementById('x').value);
+            const y = parseFloat(document.getElementById('y').value);
+            const beta = parseFloat(document.getElementById('beta').value) * Math.PI / 180; // 将角度转换为弧度
+            const useL = document.getElementById('useL').checked;
+            let L;
+
+            if (useL) {
+                L = parseFloat(document.getElementById('l').value);
+            } else {
+                L = Math.sqrt(x * x + y * y);
+            }
+
+            const g = 26; // m/s^2
+            const v0 = 133; // m/s
+
+            const tanBeta = Math.tan(beta);
+            const A = v0 * v0 / g;
+            const B = 2 * L * v0 * v0 * tanBeta / g;
+            const C = L * L;
+
+            const underSqrt = A * A - B - C;
+            let sqrtTerm;
+            if (underSqrt < 0) {
+                alert('输入的值导致平方根内为负数，请检查输入。');
+                return;
+            } else {
+                sqrtTerm = Math.sqrt(underSqrt);
+            }
+
+            const numerator = L + tanBeta * (A - sqrtTerm);
+            const denominator = tanBeta * tanBeta + 1;
+            const R = numerator / denominator;
+
+            document.getElementById('result').innerText = `L = ${L.toFixed(2)} 米, R = ${R.toFixed(2)} 密位`;
+        }
+
+        // 当选中“直接使用长度 L”时，显示 L 输入框，否则隐藏
+        document.getElementById('useL').addEventListener('change', function() {
+            const lInputGroup = document.getElementById('lInputGroup');
+            if (this.checked) {
+                lInputGroup.style.display = 'block';
+            } else {
+                lInputGroup.style.display = 'none';
+                document.getElementById('l').value = ''; // 清空 L 输入框
+            }
+        });
+    </script>
+</body>
+</html>
